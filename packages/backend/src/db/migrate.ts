@@ -23,6 +23,7 @@ async function migrate(): Promise<void> {
         const files = await fs.readdir(migrationFolder);
         const migrations: Record<string, Migration> = {};
         for (const file of files) {
+          if (file.endsWith('.d.ts') || file.endsWith('.d.mts')) continue;
           if (!file.endsWith('.ts') && !file.endsWith('.js')) continue;
           const filePath = path.join(migrationFolder, file);
           const migration = await import(pathToFileURL(filePath).href);

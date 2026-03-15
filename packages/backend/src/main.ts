@@ -3,6 +3,7 @@ import { promises as fs } from 'node:fs';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
+import fastifyStatic from '@fastify/static';
 import { Migrator, type Migration, type MigrationProvider } from 'kysely';
 import { createDb } from './db/schema.js';
 import { AnalysisService } from './services/analysis.service.js';
@@ -43,6 +44,7 @@ async function main(): Promise<void> {
         const files = await fs.readdir(migrationFolder);
         const migrations: Record<string, Migration> = {};
         for (const file of files) {
+          if (file.endsWith('.d.ts') || file.endsWith('.d.mts')) continue;
           if (!file.endsWith('.ts') && !file.endsWith('.js')) continue;
           const filePath = path.join(migrationFolder, file);
           const migration = await import(pathToFileURL(filePath).href);
@@ -79,6 +81,26 @@ async function main(): Promise<void> {
   fastify.get('/api/health', async () => {
     return { status: 'ok', timestamp: new Date().toISOString() };
   });
+
+  // Serve frontend static files if the directory exists
+  const staticDir = process.env.STATIC_DIR || path.join(__dirname, '..', '..', 'frontend', 'dist');
+  try {
+    await fs.access(staticDir);
+    await fastify.register(fastifyStatic, {
+      root: staticDir,
+      wildcard: false,
+    });
+    // SPA fallback: serve index.html for non-API routes
+    fastify.setNotFoundHandler(async (request, reply) => {
+      if (request.url.startsWith('/api/')) {
+        return reply.code(404).send({ error: 'Not found' });
+      }
+      return reply.sendFile('index.html');
+    });
+    fastify.log.info(`Serving frontend from ${staticDir}`);
+  } catch {
+    fastify.log.info('No frontend static directory found, serving API only');
+  }
 
   // Graceful shutdown
   const shutdown = async () => {

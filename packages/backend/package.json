@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/main.ts",
-    "build": "tsc",
+    "build": "node node_modules/typescript/bin/tsc",
     "start": "node dist/main.js",
     "migrate": "tsx src/db/migrate.ts",
     "test": "vitest run",
@@ -14,6 +14,7 @@
   "dependencies": {
     "fastify": "^4.28.0",
     "@fastify/cors": "^9.0.1",
+    "@fastify/static": "^7.0.4",
     "kysely": "^0.27.4",
     "kysely-libsql": "^0.7.1",
     "@libsql/client": "^0.15.0",
