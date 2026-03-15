@@ -1,0 +1,10 @@
+{
+  "name": "licensescope",
+  "private": true,
+  "scripts": {
+    "dev:backend": "pnpm --filter @licensescope/backend dev",
+    "dev:frontend": "pnpm --filter @licensescope/frontend dev",
+    "build": "pnpm --filter @licensescope/backend build && pnpm --filter @licensescope/frontend build",
+    "test": "pnpm --filter @licensescope/backend test"
+  }
+}
